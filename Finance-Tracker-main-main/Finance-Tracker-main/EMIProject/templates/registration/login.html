@@ -1,0 +1,345 @@
+{% extends 'auth_base.html' %}
+{% load static %}
+
+{% block title %}Login - FinShield Prime{% endblock %}
+
+{% block content %}
+<style>
+    .auth-card {
+        display: flex;
+        background: var(--bg-card);
+        border-radius: 24px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+        /* Deep soft shadow */
+        width: 100%;
+        max-width: 900px;
+        overflow: hidden;
+        min-height: 600px;
+    }
+
+   .auth-brand{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:60px;
+    position:relative;
+    overflow:hidden;
+
+    /* Premium Dark Theme */
+    background:linear-gradient(
+        135deg,
+        #000000 0%,
+        #010308 35%,
+        #111827 70%,
+        #0b3b2e 100%
+    );
+
+    color:#000000;
+}
+
+    
+
+    .auth-brand::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('https://img.freepik.com/free-vector/gradient-network-connection-background_23-2148879890.jpg?w=1380&t=st=1686762412~exp=1686763012~hmac=a4b0d0c0c0c0c0c0c0c0c0c0c0c0c0c0') center/cover;
+        opacity: 0.1;
+        mix-blend-mode: overlay;
+    }
+
+    .auth-form-container {
+        flex: 1.2;
+        padding: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: var(--bg-card);
+    }
+
+.social-btn{
+    width:100%;
+    height:56px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+
+    background:#fff;
+    color:#1f2937;
+
+    border:1px solid #d1d5db;
+    border-radius:14px;
+
+    font-size:15px;
+    font-weight:600;
+
+    cursor:pointer;
+    transition:.3s;
+}
+
+.social-btn:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
+
+    border-color:#19057d;
+
+}
+
+    .input-group {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .input-field {
+        width: 100%;
+        padding: 16px;
+        background: #f8fafc;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+
+    .input-field:focus {
+        background: white;
+        border-color: var(--accent-blue);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+        outline: none;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        cursor: pointer;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 16px;
+        border-radius: 12px;
+        background: var(--primary-900);
+        color: white;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: all 0.2s;
+        margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .auth-card {
+            flex-direction: column;
+            max-width: 400px;
+        }
+
+        .auth-brand {
+            display: none;
+            /* Hide brand panel on mobile for simplicity */
+        }
+    }
+</style>
+
+<div style="display:flex;flex-direction:column;height:100%;justify-content:space-between;">
+
+    <!-- ================= TOP SECTION ================= -->
+
+    <div>
+
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:40px;">
+
+            <img src="{% static 'images/f.png' %}"
+                 alt="FinShield Prime"
+                 style="width:64px;height:64px;object-fit:contain;">
+
+            <div>
+
+                <h2 style="margin:0;font-size:32px;font-weight:800;line-height:1.1;">
+
+                    <span style="color:#120101;">Fin</span><span style="color:#22c55e;">Shield</span><span style="color:#3b82f6;"> Prime</span>
+
+                </h2>
+
+                <p style="margin:6px 0 0;font-size:14px;color:#00060e;letter-spacing:.4px;">
+
+                    Smart UPI Fraud Detection & Personal Finance Tracker
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <h1 style="font-size:44px;font-weight:800;line-height:1.2;color:#090101;margin-bottom:20px;">
+
+            Protect Every
+            <br>
+
+            <span style="color:#22c55e;">UPI Transaction</span>
+
+            <br>
+
+            With Confidence
+
+        </h1>
+
+        <p style="font-size:16px;line-height:1.8;color:#000103;max-width:440px;">
+
+            Stay one step ahead of fraud with real-time UPI transaction monitoring,
+            intelligent threat detection, secure payment protection, and smart
+            personal finance management — all in one trusted platform.
+
+        </p>
+
+    </div>
+
+    <!-- ================= BOTTOM SECTION ================= -->
+
+    <div>
+
+        <div style="display:flex;align-items:center;margin-bottom:18px;">
+
+            <div style="width:46px;height:46px;border-radius:50%;
+                        background:#22c55e;
+                        color:#000000;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:18px;
+                        font-weight:700;">
+
+                S
+
+            </div>
+
+            <div style="width:46px;height:46px;border-radius:50%;
+                        background:#2563eb;
+                        color:#ffffff;
+                        margin-left:-12px;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:18px;
+                        font-weight:700;">
+
+                ₹
+
+            </div>
+
+            <div style="width:46px;height:46px;border-radius:50%;
+                        background:#ffffff;
+                        color:#2563eb;
+                        margin-left:-12px;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:18px;
+                        font-weight:700;">
+
+                ✓
+
+            </div>
+
+        </div>
+
+        <h3 style="margin:0;color:#000000;font-size:22px;font-weight:700;">
+
+            Trusted Financial Protection
+
+        </h3>
+
+        <p style="margin-top:10px;font-size:15px;color:cd#073c82;line-height:1.7;max-width:430px;">
+
+            Secure UPI Payments • Instant Fraud Detection • Smart Expense Tracking •
+            Real-Time Financial Insights
+
+        </p>
+
+    </div>
+
+</div>
+    <!-- Right Side: Form -->
+    <div class="auth-form-container">
+        <div style="margin-bottom: 32px;">
+            <h2 style="font-size: 2rem; margin-bottom: 8px;">Welcome back</h2>
+            <p style="color: var(--text-muted);">Please enter your details to sign in.</p>
+        </div>
+
+        <!-- Social Login Mockups -->
+        <div style="display: flex; gap: 10px; margin-bottom: 24px;">
+            <button type="button" class="social-btn">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+         alt="Google"
+         style="width:20px;height:20px;">
+    <span>Google</span>
+</button>
+          <button type="button" class="social-btn">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
+         alt="Facebook"
+         style="width:20px;height:20px;">
+    <span>Facebook</span>
+</button>
+</button>
+        </div>
+
+        <div
+            style="display: flex; align-items: center; gap: 10px; margin-bottom: 24px; color: var(--text-muted); font-size: 0.9rem;">
+            <div style="flex:1; height:1px; background: var(--border-light);"></div>
+            <span>OR</span>
+            <div style="flex:1; height:1px; background: var(--border-light);"></div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            {% if form.errors %}
+            <div class="alert-card critical" style="padding: 12px; margin-bottom: 20px;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>Invalid credentials. Please try again.</span>
+            </div>
+            {% endif %}
+
+            <div class="input-group">
+                <input type="text" name="username" class="input-field" placeholder="Username" required id="id_username">
+            </div>
+
+            <div class="input-group">
+                <input type="password" name="password" class="input-field" placeholder="Password" required
+                    id="id_password">
+                <i class="fa-solid fa-eye password-toggle" id="toggleLoginPass"
+                    onclick="togglePassword('id_password', 'toggleLoginPass')"></i>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <label
+                    style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: var(--text-muted);">
+                    <input type="checkbox" style="accent-color: var(--primary-900);"> Remember me
+                </label>
+                <a href="#" style="font-size: 0.9rem; color: var(--accent-blue); font-weight: 500;">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn-submit">Sign in</button>
+        </form>
+
+        <p style="margin-top: 24px; text-align: center; color: var(--text-muted); font-size: 0.95rem;">
+            Don't have an account? <a href="{% url 'register' %}"
+                style="color: var(--primary-900); font-weight: 700;">Sign up for free</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

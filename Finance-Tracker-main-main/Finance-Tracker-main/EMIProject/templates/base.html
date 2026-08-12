@@ -1,0 +1,620 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FinShield Prime – Financial Intelligence Platform{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/modern_theme.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ledger.css' %}">
+    <link rel="stylesheet" href="{% static 'css/enterprise_dashboard.css' %}">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--accent-blue) !important;
+            outline-offset: 2px !important;
+        }
+
+        .floating-action-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 52px;
+            height: 52px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 999;
+        }
+
+        .floating-action-btn:hover {
+            transform: scale(1.08) translateY(-2px);
+            box-shadow: 0 14px 36px rgba(124, 58, 237, 0.5);
+        }
+
+        .scroll-top-btn {
+            position: fixed;
+            bottom: 84px;
+            right: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 16px;
+            background: var(--bg-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 998;
+        }
+
+        .scroll-top-btn.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .dropdown-groww-panel {
+            position: absolute;
+            top: 55px;
+            right: 0;
+            width: 280px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25);
+            padding: 12px;
+            opacity: 0;
+            visibility: hidden;
+            display: none;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 9999;
+        }
+
+        .dropdown-groww-panel.active {
+            opacity: 1 !important;
+            visibility: visible !important;
+            display: block !important;
+            transform: translateY(0) !important;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--accent-blue);
+        }
+
+        .dropdown-item i {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .user-profile {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .user-profile:hover {
+            transform: scale(1.05);
+        }
+
+        .avatar {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .topbar-search-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .topbar-search-input {
+            width: 100%;
+            padding: 8px 14px 8px 36px;
+            border-radius: 10px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        .topbar-search-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .topbar-search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            pointer-events: none;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body data-theme="light">
+
+    <!-- Off-Canvas Sidebar Backdrop -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebarDrawer()"></div>
+
+    <!-- Floating AI Assistant Button -->
+    <button class="floating-action-btn" id="floatingAiBtn" onclick="openAffordModal()" title="FinShield Prime Decision Assistant">
+        <i class="fa-solid fa-brain"></i>
+    </button>
+
+    <!-- Scroll-to-Top Button -->
+    <button class="scroll-top-btn" id="scrollTopBtn" onclick="scrollToTop()" title="Scroll to Top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <!-- Off-Canvas Slide-Out Sidebar Drawer -->
+    <aside class="app-sidebar-drawer" id="sidebarDrawer">
+        <div class="sidebar-drawer-header">
+            <a href="{% url 'home' %}" class="sidebar-brand-logo">
+                <i class="fa-solid fa-chart-line" style="color: var(--accent-blue); font-size: 1.3rem;"></i>
+                <span>FinShield<span style="font-size: 0.75rem; color: var(--accent-blue); font-weight: 800;">Prime</span></span>
+            </a>
+            <button class="sidebar-drawer-close" onclick="closeSidebarDrawer()" title="Close Sidebar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-nav-scroll">
+            <div class="sidebar-section-label">Main Menu</div>
+            <a href="{% url 'home' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <span><i class="fa-solid fa-chart-pie"></i> Dashboard</span>
+            </a>
+            <a href="{% url 'wallet_dashboard' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'wallet_dashboard' %}active{% endif %}">
+                <span><i class="fa-solid fa-wallet"></i> Wallet & Budget</span>
+            </a>
+            <a href="{% url 'expense_list' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}">
+                <span><i class="fa-solid fa-receipt"></i> Expenses</span>
+            </a>
+            <a href="{% url 'recurring_list' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'recurring_list' %}active{% endif %}">
+                <span><i class="fa-solid fa-rotate"></i> Recurring</span>
+            </a>
+            <a href="{% url 'loan_list' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'loan_list' %}active{% endif %}">
+                <span><i class="fa-solid fa-building-columns"></i> Loans & EMIs</span>
+            </a>
+
+            <div class="sidebar-section-label">AI & Intelligence</div>
+            <a href="{% url 'decision_engine' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'decision_engine' %}active{% endif %}">
+                <span><i class="fa-solid fa-brain" style="color: var(--accent-purple);"></i> AI Decision Engine</span>
+            </a>
+            <a href="{% url 'saving_list' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'saving_list' %}active{% endif %}">
+                <span><i class="fa-solid fa-bullseye"></i> Savings Goals</span>
+            </a>
+            <a href="{% url 'investment_list' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'investment_list' %}active{% endif %}">
+                <span><i class="fa-solid fa-chart-line"></i> Investments</span>
+            </a>
+            <a href="{% url 'policy_list' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'policy_list' %}active{% endif %}">
+                <span><i class="fa-solid fa-shield-heart"></i> Policies & Insurance</span>
+            </a>
+            <a href="{% url 'analytics' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+                <span><i class="fa-solid fa-chart-column"></i> Analytics</span>
+            </a>
+            <a href="{% url 'emi_calculator' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'emi_calculator' %}active{% endif %}">
+                <span><i class="fa-solid fa-calculator"></i> EMI Calculator</span>
+            </a>
+
+            <div class="sidebar-section-label">Security & Vault</div>
+            <a href="{% url 'fraud_detection' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'fraud_detection' %}active{% endif %}">
+                <span><i class="fa-solid fa-shield-halved" style="color: var(--accent-emerald);"></i> AI Fraud Detection</span>
+            </a>
+            <a href="{% url 'document_list' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'document_list' %}active{% endif %}">
+                <span><i class="fa-solid fa-folder-closed"></i> Document Vault</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Master Layout Wrapper (100% Full Width Screen) -->
+    <div class="app-master-container">
+        
+        <!-- SINGLE UNIFIED 1-ROW TOP NAVBAR HEADER -->
+        <header class="app-topbar">
+            <!-- 1. Left Side: Hamburger Toggle + Logo -->
+            <div style="display: flex; align-items: center; gap: 12px; shrink: 0;">
+                <button class="hamburger-toggle-btn" onclick="openSidebarDrawer()" title="Open Navigation Drawer">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                </button>
+                
+                <a href="{% url 'home' %}" style="text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.2rem; color: var(--text-main);">
+<img src="{% static 'images/f.png' %}"
+     alt="FinShield Prime"
+     style="width:60px; height:60px; object-fit:contain;">
+<span>
+    <span style="color: var(--text-main);">Fin</span><span style="color: #22c55e;">Shield</span>
+    <span style="color: var(--accent-blue); font-weight: 800;">Prime</span>
+</span>                </a>
+            </div>
+
+            <!-- 2. Middle Section: Smart Search Input -->
+            <div class="topbar-search-wrapper">
+                <form action="{% url 'search' %}" method="GET" id="globalSearchForm" onsubmit="return handleSmartSearch(event)">
+                    <input type="text" name="q" id="globalSearchInput" class="topbar-search-input" placeholder="Search 'Loans', 'Fraud', 'Investments' or press Ctrl+K..." autocomplete="off">
+                    <i class="fa-solid fa-search topbar-search-icon"></i>
+                </form>
+            </div>
+
+            <!-- 3. Integrated Quick Action Pills (Merged into Header) -->
+            <div class="header-actions-group">
+                <a href="{% url 'expense_create' %}" class="header-action-btn btn-primary-blue">
+                    <i class="fa-solid fa-plus"></i> Add Expense
+                </a>
+                <a href="{% url 'wallet_dashboard' %}" class="header-action-btn">
+                    <i class="fa-solid fa-arrow-down-left" style="color: var(--accent-emerald);"></i> Add Income
+                </a>
+                <a href="{% url 'fraud_detection' %}" class="header-action-btn" style="color: var(--accent-emerald);">
+                    <i class="fa-solid fa-shield-halved"></i> Fraud Shield
+                </a>
+                <a href="{% url 'scan_pay' %}" class="header-action-btn">
+                    <i class="fa-solid fa-qrcode" style="color: var(--accent-purple);"></i> Scan Receipt
+                </a>
+                <a href="{% url 'add_document' %}" class="header-action-btn">
+                    <i class="fa-solid fa-file-arrow-up"></i> Vault Upload
+                </a>
+                <button type="button" onclick="openAffordModal()" class="header-action-btn">
+                    <i class="fa-solid fa-brain" style="color: var(--accent-purple);"></i> Can I Afford This?
+                </button>
+                <button type="button" onclick="openCmdPaletteModal()" class="header-action-btn">
+                    <i class="fa-solid fa-keyboard"></i> Cmd+K
+                </button>
+                <a href="{% url 'whatsapp_report' %}" class="header-action-btn" style="color: var(--accent-emerald);">
+                    <i class="fa-brands fa-whatsapp"></i> AI Report
+                </a>
+            </div>
+
+            <!-- 4. Right Side: Notifications, Theme Switcher & Profile -->
+            <div style="display: flex; align-items: center; gap: 12px; shrink: 0;">
+                <div style="position: relative;">
+                    <button class="nav-icon-btn" id="bellIcon" style="background: none; border: none; font-size: 1.1rem; color: var(--text-main); cursor: pointer; position: relative;">
+                        <i class="fa-solid fa-bell"></i>
+                        {% if upcoming_reminders %}
+                        <span class="notification-badge" style="position: absolute; top: -4px; right: -4px; background: var(--accent-rose); color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 0.65rem; font-weight: 800; display: flex; align-items: center; justify-content: center;">{{ upcoming_reminders|length }}</span>
+                        {% endif %}
+                    </button>
+                    <div class="dropdown-groww-panel" id="notificationMenu">
+                        <div style="font-weight: 800; font-size: 0.9rem; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--border-subtle);">Notifications</div>
+                        {% if upcoming_reminders %}
+                        {% for reminder in upcoming_reminders %}
+                        <div style="padding: 8px 0; border-bottom: 1px solid var(--border-subtle);">
+                            <div style="font-weight: 700; font-size: 0.85rem;">{{ reminder.title }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+                                <span>{{ reminder.date|date:"M d" }}</span>
+                                <span style="font-weight: 700; color: var(--accent-rose);">₹{{ reminder.amount|floatformat:0 }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div style="padding: 12px; text-align: center; color: var(--text-muted); font-size: 0.82rem;">No new notifications</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <button class="theme-toggle" id="themeToggle" title="Toggle Theme" style="background: none; border: none; font-size: 1.1rem; color: var(--text-main); cursor: pointer;">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+
+                <div style="position: relative;">
+                    <div class="user-profile" id="userProfileBtn" style="cursor: pointer;" title="{{ user.username }}">
+                        <div class="avatar">{{ user.username.0|upper }}</div>
+                    </div>
+                    <div class="dropdown-groww-panel" id="userDropdown">
+                        <div style="padding-bottom: 10px; margin-bottom: 8px; border-bottom: 1px solid var(--border-subtle);">
+                            <div style="font-weight: 800; font-size: 0.9rem; color: var(--text-main);">{{ user.get_full_name|default:user.username }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ user.email }}</div>
+                        </div>
+                        <a href="{% url 'contact' %}" class="dropdown-item">
+                            <i class="fa-solid fa-user-gear"></i> User Profile & Settings
+                        </a>
+                        <a href="{% url 'fraud_detection' %}" class="dropdown-item">
+                            <i class="fa-solid fa-shield-halved" style="color: var(--accent-emerald);"></i> AI Fraud Shield
+                        </a>
+                        <a href="{% url 'decision_engine' %}" class="dropdown-item">
+                            <i class="fa-solid fa-brain" style="color: var(--accent-purple);"></i> AI Decision Engine
+                        </a>
+                        <a href="{% url 'document_list' %}" class="dropdown-item">
+                            <i class="fa-solid fa-folder-open"></i> Document Vault
+                        </a>
+                        <a href="{% url 'about' %}" class="dropdown-item">
+                            <i class="fa-solid fa-circle-info"></i> About FinShield Prime
+                        </a>
+                        <div style="border-top: 1px solid var(--border-subtle); margin: 8px 0; padding-top: 6px;">
+                            <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item" style="width: 100%; border: none; background: none; font-family: inherit; cursor: pointer; text-align: left; color: var(--accent-rose);">
+                                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Workspace Area (100% Width Margin-Left 0) -->
+        <div class="main-wrapper-content">
+            <div class="content-body" style="flex: 1;">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Can I Afford This? Evaluator -->
+    <div class="modal-overlay" id="affordModal">
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 22px; padding: 28px; width: 100%; max-width: 480px; box-shadow: 0 25px 60px rgba(0,0,0,0.35);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+                    <i class="fa-solid fa-brain" style="color: var(--accent-purple);"></i> Can I Afford This?
+                </h3>
+                <button type="button" onclick="closeAffordModal()" style="background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="affordForm" onsubmit="runAffordabilityCheck(event)">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px; color: var(--text-main);">Item / Purchase Name</label>
+                    <input type="text" id="affordName" placeholder="e.g. MacBook Pro, iPhone 16" required style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border-subtle); background: var(--bg-primary); color: var(--text-main); font-size: 0.9rem;">
+                </div>
+                <div style="grid-template-columns: 1fr 1fr; display: grid; gap: 14px; margin-bottom: 14px;">
+                    <div>
+                        <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px; color: var(--text-main);">Amount (₹)</label>
+                        <input type="number" id="affordAmount" placeholder="150000" required style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border-subtle); background: var(--bg-primary); color: var(--text-main); font-size: 0.9rem;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px; color: var(--text-main);">Payment Type</label>
+                        <select id="affordType" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border-subtle); background: var(--bg-primary); color: var(--text-main); font-size: 0.9rem;">
+                            <option value="LUMP_SUM">Lump Sum</option>
+                            <option value="EMI">EMI Loan</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="header-action-btn" style="width: 100%; justify-content: center; background: var(--accent-purple); color: white; border: none; padding: 14px; margin-top: 8px; font-size: 0.9rem;">
+                    Run AI Affordability Simulation
+                </button>
+            </form>
+
+            <div id="affordResult" style="display: none; margin-top: 18px; padding: 16px; border-radius: 14px; background: var(--bg-primary); border: 1px solid var(--border-subtle);">
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Command Palette (Ctrl + K) -->
+    <div class="modal-overlay" id="cmdPaletteModal">
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 22px; padding: 24px; width: 100%; max-width: 520px; box-shadow: 0 25px 60px rgba(0,0,0,0.35);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-terminal" style="color: var(--accent-blue);"></i> FinShield Prime Command Palette (Ctrl + K)
+                </h4>
+                <button onclick="closeCmdPaletteModal()" style="background: none; border: none; font-size: 1.1rem; color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem;">
+                <a href="{% url 'decision_engine' %}" class="dropdown-item"><i class="fa-solid fa-brain" style="color: var(--accent-purple);"></i> Jump to AI Decision Engine</a>
+                <a href="{% url 'fraud_detection' %}" class="dropdown-item"><i class="fa-solid fa-shield-halved" style="color: var(--accent-emerald);"></i> Jump to AI Fraud Shield</a>
+                <a href="{% url 'saving_list' %}" class="dropdown-item"><i class="fa-solid fa-bullseye" style="color: var(--accent-blue);"></i> Jump to Savings Goals</a>
+                <a href="{% url 'document_list' %}" class="dropdown-item"><i class="fa-solid fa-folder-closed"></i> Jump to Document Vault</a>
+                <a href="{% url 'expense_list' %}" class="dropdown-item"><i class="fa-solid fa-receipt"></i> Jump to Transactions Ledger</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+        function openAffordModal() {
+            document.getElementById('affordModal').classList.add('active');
+        }
+
+        function closeAffordModal() {
+            document.getElementById('affordModal').classList.remove('active');
+        }
+
+        function openCmdPaletteModal() {
+            document.getElementById('cmdPaletteModal').classList.add('active');
+        }
+
+        function closeCmdPaletteModal() {
+            document.getElementById('cmdPaletteModal').classList.remove('active');
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.addEventListener('scroll', function() {
+            const btn = document.getElementById('scrollTopBtn');
+            if (window.scrollY > 300) {
+                btn.classList.add('visible');
+            } else {
+                btn.classList.remove('visible');
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                openCmdPaletteModal();
+            }
+            if (e.key === 'Escape') {
+                closeSidebarDrawer();
+                closeAffordModal();
+                closeCmdPaletteModal();
+            }
+        });
+
+        async function runAffordabilityCheck(e) {
+            e.preventDefault();
+            const name = document.getElementById('affordName').value;
+            const amount = document.getElementById('affordAmount').value;
+            const type = document.getElementById('affordType').value;
+
+            const resDiv = document.getElementById('affordResult');
+            resDiv.style.display = 'block';
+            resDiv.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem;"><i class="fa-solid fa-spinner fa-spin"></i> Analyzing financial impact...</div>';
+
+            try {
+                const resp = await fetch('/api/v1/decision/can-i-afford/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify({ purchase_name: name, amount: parseFloat(amount), payment_type: type })
+                });
+                const json = await resp.json();
+                if (json.success) {
+                    const d = json.data;
+                    const badgeColor = d.decision === 'YES' ? '#059669' : (d.decision === 'WAIT' ? '#d97706' : '#dc2626');
+                    resDiv.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-weight: 800; font-size: 1.1rem; color: ${badgeColor};">Verdict: ${d.decision}</span>
+                            <span class="badge-sm" style="background: ${badgeColor}20; color: ${badgeColor};">Score: ${d.affordability_score}/100</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-main); margin: 0 0 8px 0; font-weight: 500;">${d.ai_explanation}</p>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">Post-purchase Liquid Fund: ₹${d.impact_analysis.post_liquid_assets.toLocaleString()}</div>
+                    `;
+                } else {
+                    resDiv.innerHTML = '<div style="color: var(--accent-rose); font-size: 0.85rem;">Failed to process analysis.</div>';
+                }
+            } catch (err) {
+                resDiv.innerHTML = '<div style="color: var(--accent-rose); font-size: 0.85rem;">Error connecting to decision engine.</div>';
+            }
+        }
+
+        function openSidebarDrawer() {
+            document.getElementById('sidebarDrawer').classList.add('drawer-open');
+            document.getElementById('sidebarBackdrop').classList.add('active');
+        }
+
+        function closeSidebarDrawer() {
+            document.getElementById('sidebarDrawer').classList.remove('drawer-open');
+            document.getElementById('sidebarBackdrop').classList.remove('active');
+        }
+
+        const APP_ROUTES = {
+            'dashboard': "{% url 'home' %}",
+            'home': "{% url 'home' %}",
+            'decision': "{% url 'decision_engine' %}",
+            'fraud': "{% url 'fraud_detection' %}",
+            'expense': "{% url 'expense_list' %}",
+            'expenses': "{% url 'expense_list' %}",
+            'loan': "{% url 'loan_list' %}",
+            'loans': "{% url 'loan_list' %}",
+            'saving': "{% url 'saving_list' %}",
+            'savings': "{% url 'saving_list' %}",
+            'invest': "{% url 'investment_list' %}",
+            'investments': "{% url 'investment_list' %}",
+            'policy': "{% url 'policy_list' %}",
+            'policies': "{% url 'policy_list' %}",
+            'vault': "{% url 'document_list' %}"
+        };
+
+        function handleSmartSearch(e) {
+            const query = document.getElementById('globalSearchInput').value.toLowerCase().trim();
+            if (APP_ROUTES[query]) {
+                e.preventDefault();
+                window.location.href = APP_ROUTES[query];
+                return false;
+            }
+            return true;
+        }
+
+        const themeToggle = document.getElementById('themeToggle');
+        const sunIcon = '<i class="fa-solid fa-sun"></i>';
+        const moonIcon = '<i class="fa-solid fa-moon"></i>';
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+        themeToggle.innerHTML = savedTheme === 'dark' ? sunIcon : moonIcon;
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeToggle.innerHTML = newTheme === 'dark' ? sunIcon : moonIcon;
+        });
+
+        const bellIcon = document.getElementById('bellIcon');
+        const notificationMenu = document.getElementById('notificationMenu');
+        const userProfileBtn = document.getElementById('userProfileBtn');
+        const userDropdown = document.getElementById('userDropdown');
+
+        if (bellIcon) {
+            bellIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notificationMenu.classList.toggle('active');
+                if (userDropdown) userDropdown.classList.remove('active');
+            });
+        }
+
+        if (userProfileBtn) {
+            userProfileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.toggle('active');
+                if (notificationMenu) notificationMenu.classList.remove('active');
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (notificationMenu && !notificationMenu.contains(e.target) && e.target !== bellIcon) {
+                notificationMenu.classList.remove('active');
+            }
+            if (userDropdown && !userDropdown.contains(e.target) && !userProfileBtn.contains(e.target)) {
+                userDropdown.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+
+</html>

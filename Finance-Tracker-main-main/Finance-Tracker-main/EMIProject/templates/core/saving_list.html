@@ -1,0 +1,463 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FinTrack AI – Smart Savings Goals & Goal Planner Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/enterprise_dashboard.css' %}">
+<style>
+    .goal-card-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 20px;
+        padding: 22px;
+        transition: all 0.2s ease;
+    }
+    .goal-card-box:hover {
+        border-color: var(--accent-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+    }
+    .milestone-badge {
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        background: rgba(5, 150, 105, 0.12);
+        color: var(--accent-emerald);
+        border: 1px solid rgba(5, 150, 105, 0.2);
+    }
+    .milestone-badge.pending {
+        background: var(--bg-primary);
+        color: var(--text-muted);
+        border-color: var(--border-subtle);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="saas-full-wrapper">
+
+    <!-- 1. Header Toolbar with Quick Actions & Filters -->
+    <div class="saas-hero" style="padding: 18px 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="padding: 10px 14px; border-radius: 14px; background: rgba(37, 99, 235, 0.12); color: var(--accent-blue);">
+                <i class="fa-solid fa-bullseye" style="font-size: 1.3rem;"></i>
+            </div>
+            <div>
+                <h1 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                    Smart Savings Goals & Goal Planner
+                </h1>
+                <div style="font-size: 0.82rem; color: var(--text-sub);">
+                    AI-assisted target tracking, scenario simulation & milestone milestone tracking
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <!-- Category Filter -->
+            <select id="goalCatFilter" onchange="filterGoals()" style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-primary); color: var(--text-main); font-size: 0.82rem; font-weight: 700;">
+                <option value="ALL">All Goal Categories</option>
+                <option value="TECH">Laptop / Tech</option>
+                <option value="VEHICLE">Bike / Car</option>
+                <option value="TRAVEL">Vacation / Travel</option>
+                <option value="EMERGENCY">Emergency Fund</option>
+            </select>
+
+            <a href="{% url 'add_saving' %}" class="header-action-btn btn-primary-blue">
+                <i class="fa-solid fa-plus"></i> Create New Goal
+            </a>
+        </div>
+    </div>
+
+    <!-- 2. Goals Overview (7 KPI Summary Cards) -->
+    <div class="saas-kpi-grid" style="margin-bottom: 24px;">
+        <div class="saas-kpi-card">
+            <span class="kpi-label">Total Target Pool</span>
+            <div class="kpi-value" style="color: var(--accent-purple);">₹10,50,000</div>
+            <div class="kpi-sub">Across 6 active goals</div>
+        </div>
+
+        <div class="saas-kpi-card">
+            <span class="kpi-label">Total Saved</span>
+            <div class="kpi-value" style="color: var(--accent-emerald);">₹{{ total_savings|floatformat:0|default:"5,95,000" }}</div>
+            <div class="kpi-sub" style="color: var(--accent-emerald);"><i class="fa-solid fa-arrow-trend-up"></i> Accumulated</div>
+        </div>
+
+        <div class="saas-kpi-card">
+            <span class="kpi-label">Remaining Gap</span>
+            <div class="kpi-value" style="color: var(--accent-rose);">₹4,55,000</div>
+            <div class="kpi-sub" style="color: var(--accent-rose);">43.4% remaining</div>
+        </div>
+
+        <div class="saas-kpi-card">
+            <span class="kpi-label">Overall Progress</span>
+            <div class="kpi-value" style="color: var(--accent-blue);">56.6%</div>
+            <div style="width: 100%; height: 6px; background: var(--border-subtle); border-radius: 4px; overflow: hidden; margin-top: 4px;">
+                <div style="width: 56.6%; height: 100%; background: var(--accent-blue);"></div>
+            </div>
+        </div>
+
+        <div class="saas-kpi-card">
+            <span class="kpi-label">Active / Completed</span>
+            <div class="kpi-value">4 <span style="font-size: 0.8rem; color: var(--text-muted);">/ 2 Done</span></div>
+            <div class="kpi-sub" style="color: var(--accent-emerald);">100% Milestone Achieved</div>
+        </div>
+
+        <div class="saas-kpi-card">
+            <span class="kpi-label">Monthly Target Contribution</span>
+            <div class="kpi-value" style="color: var(--accent-blue);">₹70,000 <span style="font-size: 0.8rem; color: var(--text-muted);">/mo</span></div>
+            <div class="kpi-sub">Auto SIP distribution</div>
+        </div>
+
+        <div class="saas-kpi-card">
+            <span class="kpi-label">Discipline Rating</span>
+            <div class="kpi-value" style="color: var(--accent-purple);">94 / 100</div>
+            <div class="kpi-sub" style="color: var(--accent-emerald);">Grade A+ Consistent</div>
+        </div>
+    </div>
+
+    <!-- 3. AI Scenario Simulator Slider Widget -->
+    <div class="saas-card" style="padding: 24px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-sliders" style="color: var(--accent-purple);"></i> Interactive AI Goal Completion Scenario Simulator
+            </h3>
+            <span class="badge-sm badge-purple">Real-Time Scenario Projection</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+            <!-- Simulation Controls -->
+            <div style="background: var(--bg-primary); border-radius: 16px; padding: 18px; border: 1px solid var(--border-subtle);">
+                <div style="margin-bottom: 14px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
+                        <span>Extra Monthly Savings Boost:</span>
+                        <span id="simBoostVal" style="color: var(--accent-blue); font-weight: 800;">+₹5,000 / mo</span>
+                    </div>
+                    <input type="range" id="simSlider" min="0" max="25000" step="1000" value="5000" oninput="updateGoalSimulation()" style="width: 100%; accent-color: var(--accent-blue);">
+                </div>
+
+                <div style="font-size: 0.8rem; color: var(--text-sub); display: flex; justify-content: space-between; pt-10; border-top: 1px solid var(--border-subtle);">
+                    <span>Impact on MacBook Goal:</span>
+                    <strong id="simImpactText" style="color: var(--accent-emerald);">Reach Goal 1 Month Faster (Oct 2026)</strong>
+                </div>
+            </div>
+
+            <!-- Simulation Result Card -->
+            <div style="background: var(--bg-primary); border-radius: 16px; padding: 18px; border: 1px solid var(--border-subtle); display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span class="badge-sm badge-emerald">Updated Completion: Oct 2026</span>
+                        <span style="font-weight: 800; font-size: 0.85rem; color: var(--accent-purple);">Success Prob: 98%</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-main); margin: 0; font-weight: 500;">
+                        Adding +₹5,000/mo extra savings reduces total completion duration across all 4 active goals by 2.4 months.
+                    </p>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); pt-10; border-top: 1px solid var(--border-subtle);">
+                    💡 <strong>AI Advisory:</strong> Reallocating ₹5,000 from non-essential dining expenses triggers instant completion acceleration.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Modular Goal Cards Grid (10 Categories & Milestone Badges) -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0; color: var(--text-main);">
+            Active Savings Goals & Target Cards
+        </h3>
+        <span class="badge-sm badge-blue">4 Active Targets</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 28px;">
+        <!-- Goal Card 1 -->
+        <div class="goal-card-box" data-cat="TECH">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="padding: 10px; border-radius: 12px; background: rgba(37, 99, 235, 0.12); color: var(--accent-blue);">
+                        <i class="fa-solid fa-laptop" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--text-main);">MacBook Pro M3 Max</h4>
+                        <div style="font-size: 0.78rem; color: var(--text-sub); font-weight: 600;">Laptop / Tech • Target Nov 2026</div>
+                    </div>
+                </div>
+                <span class="badge-sm badge-emerald">94% Probability</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">
+                    <span style="color: var(--text-sub);">Saved: ₹1,20,000 / ₹1,80,000</span>
+                    <span style="color: var(--accent-blue);">66%</span>
+                </div>
+                <div style="width: 100%; height: 8px; background: var(--border-subtle); border-radius: 4px; overflow: hidden;">
+                    <div style="width: 66%; height: 100%; background: var(--accent-blue);"></div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; margin-bottom: 12px; font-size: 0.78rem;">
+                <div style="padding: 8px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-subtle);">
+                    <div style="color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">Monthly</div>
+                    <div style="font-weight: 800; color: var(--accent-blue); margin-top: 2px;">₹15,000</div>
+                </div>
+                <div style="padding: 8px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-subtle);">
+                    <div style="color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">Remaining</div>
+                    <div style="font-weight: 800; color: var(--accent-rose); margin-top: 2px;">₹60,000</div>
+                </div>
+                <div style="padding: 8px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-subtle);">
+                    <div style="color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">Target Date</div>
+                    <div style="font-weight: 800; color: var(--text-main); margin-top: 2px;">Nov 2026</div>
+                </div>
+            </div>
+
+            <!-- Milestone Badges -->
+            <div style="display: flex; gap: 6px; align-items: center;">
+                <span style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Milestones:</span>
+                <span class="milestone-badge">25% ✓</span>
+                <span class="milestone-badge">50% ✓</span>
+                <span class="milestone-badge pending">75%</span>
+                <span class="milestone-badge pending">100%</span>
+            </div>
+        </div>
+
+        <!-- Goal Card 2 -->
+        <div class="goal-card-box" data-cat="VEHICLE">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="padding: 10px; border-radius: 12px; background: rgba(124, 58, 237, 0.12); color: var(--accent-purple);">
+                        <i class="fa-solid fa-motorcycle" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--text-main);">Royal Enfield Hunter 350</h4>
+                        <div style="font-size: 0.78rem; color: var(--text-sub); font-weight: 600;">Bike / Vehicle • Target Mar 2027</div>
+                    </div>
+                </div>
+                <span class="badge-sm badge-emerald">88% Probability</span>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">
+                    <span style="color: var(--text-sub);">Saved: ₹85,000 / ₹2,20,000</span>
+                    <span style="color: var(--accent-purple);">38%</span>
+                </div>
+                <div style="width: 100%; height: 8px; background: var(--border-subtle); border-radius: 4px; overflow: hidden;">
+                    <div style="width: 38%; height: 100%; background: var(--accent-purple);"></div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; margin-bottom: 12px; font-size: 0.78rem;">
+                <div style="padding: 8px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-subtle);">
+                    <div style="color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">Monthly</div>
+                    <div style="font-weight: 800; color: var(--accent-purple); margin-top: 2px;">₹12,000</div>
+                </div>
+                <div style="padding: 8px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-subtle);">
+                    <div style="color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">Remaining</div>
+                    <div style="font-weight: 800; color: var(--accent-rose); margin-top: 2px;">₹1,35,000</div>
+                </div>
+                <div style="padding: 8px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-subtle);">
+                    <div style="color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">Target Date</div>
+                    <div style="font-weight: 800; color: var(--text-main); margin-top: 2px;">Mar 2027</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 6px; align-items: center;">
+                <span style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Milestones:</span>
+                <span class="milestone-badge">25% ✓</span>
+                <span class="milestone-badge pending">50%</span>
+                <span class="milestone-badge pending">75%</span>
+                <span class="milestone-badge pending">100%</span>
+            </div>
+        </div>
+
+        <!-- Goal Card 3 -->
+        <div class="goal-card-box" data-cat="TRAVEL">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="padding: 10px; border-radius: 12px; background: rgba(5, 150, 105, 0.12); color: var(--accent-emerald);">
+                        <i class="fa-solid fa-plane" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--text-main);">Japan Autumn Tour</h4>
+                        <div style="font-size: 0.78rem; color: var(--text-sub); font-weight: 600;">Vacation / Travel • Target Oct 2026</div>
+                    </div>
+                </div>
+                <span class="badge-sm badge-emerald">91% Probability</span>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">
+                    <span style="color: var(--text-sub);">Saved: ₹1,50,000 / ₹3,00,000</span>
+                    <span style="color: var(--accent-emerald);">50%</span>
+                </div>
+                <div style="width: 100%; height: 8px; background: var(--border-subtle); border-radius: 4px; overflow: hidden;">
+                    <div style="width: 50%; height: 100%; background: var(--accent-emerald);"></div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; margin-bottom: 12px; font-size: 0.78rem;">
+                <div style="padding: 8px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-subtle);">
+                    <div style="color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">Monthly</div>
+                    <div style="font-weight: 800; color: var(--accent-emerald); margin-top: 2px;">₹25,000</div>
+                </div>
+                <div style="padding: 8px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-subtle);">
+                    <div style="color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">Remaining</div>
+                    <div style="font-weight: 800; color: var(--accent-rose); margin-top: 2px;">₹1,50,000</div>
+                </div>
+                <div style="padding: 8px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-subtle);">
+                    <div style="color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">Target Date</div>
+                    <div style="font-weight: 800; color: var(--text-main); margin-top: 2px;">Oct 2026</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 6px; align-items: center;">
+                <span style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Milestones:</span>
+                <span class="milestone-badge">25% ✓</span>
+                <span class="milestone-badge">50% ✓</span>
+                <span class="milestone-badge pending">75%</span>
+                <span class="milestone-badge pending">100%</span>
+            </div>
+        </div>
+
+        <!-- Goal Card 4 -->
+        <div class="goal-card-box" data-cat="EMERGENCY">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="padding: 10px; border-radius: 12px; background: rgba(217, 119, 6, 0.12); color: var(--accent-amber);">
+                        <i class="fa-solid fa-shield-halved" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--text-main);">6-Month Emergency Cushion</h4>
+                        <div style="font-size: 0.78rem; color: var(--text-sub); font-weight: 600;">Emergency Fund • Target Sep 2026</div>
+                    </div>
+                </div>
+                <span class="badge-sm badge-emerald">98% Probability</span>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">
+                    <span style="color: var(--text-sub);">Saved: ₹2,40,000 / ₹3,50,000</span>
+                    <span style="color: var(--accent-amber);">68%</span>
+                </div>
+                <div style="width: 100%; height: 8px; background: var(--border-subtle); border-radius: 4px; overflow: hidden;">
+                    <div style="width: 68%; height: 100%; background: var(--accent-amber);"></div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; margin-bottom: 12px; font-size: 0.78rem;">
+                <div style="padding: 8px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-subtle);">
+                    <div style="color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">Monthly</div>
+                    <div style="font-weight: 800; color: var(--accent-amber); margin-top: 2px;">₹18,000</div>
+                </div>
+                <div style="padding: 8px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-subtle);">
+                    <div style="color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">Remaining</div>
+                    <div style="font-weight: 800; color: var(--accent-rose); margin-top: 2px;">₹1,10,000</div>
+                </div>
+                <div style="padding: 8px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-subtle);">
+                    <div style="color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">Target Date</div>
+                    <div style="font-weight: 800; color: var(--text-main); margin-top: 2px;">Sep 2026</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 6px; align-items: center;">
+                <span style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Milestones:</span>
+                <span class="milestone-badge">25% ✓</span>
+                <span class="milestone-badge">50% ✓</span>
+                <span class="milestone-badge pending">75%</span>
+                <span class="milestone-badge pending">100%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Analytics Charts & Milestone Activity Feed -->
+    <div class="analytics-chart-grid" style="margin-bottom: 28px;">
+        <div class="saas-card chart-card-bounded">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-main);">Monthly Savings Accumulation Trend</h4>
+                <span class="badge-sm badge-blue">Savings Trend</span>
+            </div>
+            <div class="chart-container-box">
+                <canvas id="savingsTrendChart"></canvas>
+            </div>
+        </div>
+
+        <div class="saas-card chart-card-bounded">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-main);">Goal Pool Distribution by Category</h4>
+                <span class="badge-sm badge-purple">Distribution</span>
+            </div>
+            <div class="chart-container-box">
+                <canvas id="goalCategoryDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterGoals() {
+        const cat = document.getElementById('goalCatFilter').value;
+        const cards = document.querySelectorAll('.goal-card-box');
+        cards.forEach(card => {
+            const cardCat = card.getAttribute('data-cat');
+            if (cat === 'ALL' || cardCat === cat) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function updateGoalSimulation() {
+        const val = parseInt(document.getElementById('simSlider').value);
+        document.getElementById('simBoostVal').innerText = '+₹' + val.toLocaleString() + ' / mo';
+        const impact = document.getElementById('simImpactText');
+        if (val >= 10000) {
+            impact.innerText = 'Reach Goal 3 Months Faster (Aug 2026)';
+        } else if (val >= 5000) {
+            impact.innerText = 'Reach Goal 1.5 Months Faster (Sep 2026)';
+        } else {
+            impact.innerText = 'On Track (Nov 2026 Target)';
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx1 = document.getElementById('savingsTrendChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Current'],
+                datasets: [{
+                    label: 'Total Accumulated Savings (₹)',
+                    data: [320000, 380000, 440000, 500000, 550000, {{ total_savings|default:595000 }}],
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    fill: true,
+                    tension: 0.35
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { font: { family: 'Inter', size: 12, weight: 'bold' } } } }
+            }
+        });
+
+        const ctx2 = document.getElementById('goalCategoryDistributionChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['Travel (₹3L)', 'Emergency (₹3.5L)', 'Vehicle (₹2.2L)', 'Tech (₹1.8L)'],
+                datasets: [{
+                    data: [300000, 350000, 220000, 180000],
+                    backgroundColor: ['#059669', '#d97706', '#7c3aed', '#2563eb']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right', labels: { font: { family: 'Inter', size: 12, weight: 'bold' } } } }
+            }
+        });
+    });
+</script>
+{% endblock %}

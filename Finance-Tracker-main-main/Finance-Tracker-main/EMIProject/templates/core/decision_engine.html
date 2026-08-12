@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FinTrack AI Decision Engine{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/enterprise_dashboard.css' %}">
+<style>
+    .ai-rec-card {
+        border-radius: 14px;
+        padding: 16px;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-subtle);
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+    }
+    .ai-rec-card:hover {
+        border-color: var(--accent-purple);
+        transform: translateY(-1px);
+    }
+    .goal-tab-btn {
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-primary);
+        color: var(--text-main);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .goal-tab-btn.active {
+        background: var(--accent-blue);
+        color: white;
+        border-color: var(--accent-blue);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="saas-full-wrapper">
+
+    <!-- 1. Smart Quick Actions Header Toolbar -->
+    <div class="saas-hero" style="padding: 16px 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="padding: 8px 12px; border-radius: 12px; background: rgba(124, 58, 237, 0.12); color: var(--accent-purple);">
+                <i class="fa-solid fa-brain" style="font-size: 1.2rem;"></i>
+            </div>
+            <div>
+                <h1 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: var(--text-main);">
+                    FinTrack AI Decision Engine
+                </h1>
+                <div style="font-size: 0.82rem; color: var(--text-sub);">
+                    Automated purchase evaluation, cashflow forecasting & goal simulation
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <button onclick="document.getElementById('affordModal').classList.add('active')" class="header-action-btn btn-primary-blue">
+                <i class="fa-solid fa-brain"></i> Can I Afford This?
+            </button>
+            <button onclick="document.getElementById('goalSimSection').scrollIntoView({behavior: 'smooth'})" class="header-action-btn">
+                <i class="fa-solid fa-bullseye" style="color: var(--accent-blue);"></i> Simulate Goal
+            </button>
+            <button onclick="document.getElementById('forecastSection').scrollIntoView({behavior: 'smooth'})" class="header-action-btn">
+                <i class="fa-solid fa-chart-line" style="color: var(--accent-emerald);"></i> Predict Cash Flow
+            </button>
+            <a href="{% url 'whatsapp_report' %}" class="header-action-btn" style="color: var(--accent-emerald);">
+                <i class="fa-brands fa-whatsapp"></i> AI Report
+            </a>
+        </div>
+    </div>
+
+    <!-- 2. Financial Health Score Widget (With Circular Ring Progress & Status) -->
+    <div class="saas-card" style="padding: 24px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <!-- Circular Ring Progress Indicator -->
+                <div style="position: relative; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center;">
+                    <svg style="width: 100%; height: 100%; transform: rotate(-90deg);" viewBox="0 0 36 36">
+                        <path stroke-width="3.5" stroke="var(--border-subtle)" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path stroke-dasharray="82, 100" stroke-width="3.5" stroke-linecap="round" stroke="var(--accent-purple)" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div style="position: absolute; text-align: center;">
+                        <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">82</div>
+                        <div style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted);">/ 100</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <span class="badge-sm badge-emerald">Grade A+ • EXCELLENT</span>
+                        <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-emerald);"><i class="fa-solid fa-arrow-trend-up"></i> +4.2% MoM</span>
+                    </div>
+                    <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--text-main);">Financial Health Rating</h2>
+                    <p style="font-size: 0.82rem; color: var(--text-sub); margin: 4px 0 0 0;">
+                        High liquid reserve buffer (4.2 months), low debt-to-income ratio (16%), and consistent savings rate (64.3%).
+                    </p>
+                </div>
+            </div>
+
+            <!-- Sub-Metrics Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-width: 240px;">
+                <div style="padding: 12px; background: var(--bg-primary); border-radius: 12px; border: 1px solid var(--border-subtle); text-align: center;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Emergency Cushion</div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--accent-emerald); margin-top: 2px;">4.2 Months</div>
+                </div>
+                <div style="padding: 12px; background: var(--bg-primary); border-radius: 12px; border: 1px solid var(--border-subtle); text-align: center;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Debt Ratio (DTI)</div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--accent-blue); margin-top: 2px;">16% Safe</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rotational Financial Tip Rotator -->
+        <div style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-sub); background: rgba(124, 58, 237, 0.06); padding: 10px 14px; border-radius: 14px; border: 1px solid rgba(124, 58, 237, 0.15); margin-top: 18px;">
+            <i class="fa-solid fa-lightbulb" style="color: var(--accent-amber);"></i>
+            <span id="quoteText"><strong style="color: var(--text-main);">Tip of the Day:</strong> "Don't save what is left after spending; spend what is left after saving."</span>
+            <button onclick="shuffleQuote()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; margin-left: auto;" title="Next Tip"><i class="fa-solid fa-rotate"></i></button>
+        </div>
+    </div>
+
+    <!-- 3. "Can I Afford This?" Purchase Simulator & Purchase Impact Analysis Card -->
+    <div class="saas-card" style="padding: 24px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-brain" style="color: var(--accent-purple);"></i> "Can I Afford This?" Purchase Simulator & Impact Analysis
+            </h3>
+            <span class="badge-sm badge-purple">Interactive AI Simulation</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+            <!-- Form Card -->
+            <form onsubmit="runDashboardAffordSim(event)" style="background: var(--bg-primary); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 18px;">
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Purchase / Item Name</label>
+                    <input type="text" id="dashAffordName" value="iPhone 16 Pro" required style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main); font-size: 0.85rem;">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Amount (₹)</label>
+                        <input type="number" id="dashAffordAmount" value="140000" required style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main); font-size: 0.85rem;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Payment Type</label>
+                        <select id="dashAffordType" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main); font-size: 0.85rem;">
+                            <option value="LUMP_SUM">Lump Sum</option>
+                            <option value="EMI">EMI Loan</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="header-action-btn btn-primary-blue" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.85rem;">
+                    <i class="fa-solid fa-brain"></i> Evaluate Purchase Impact
+                </button>
+            </form>
+
+            <!-- Impact Analysis Output Card -->
+            <div id="dashAffordResultCard" style="background: var(--bg-primary); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span id="dashVerdictBadge" class="badge-sm badge-emerald">Verdict: YES</span>
+                        <span id="dashVerdictScore" style="font-weight: 800; font-size: 0.88rem; color: var(--accent-purple);">Score: 85/100</span>
+                    </div>
+                    <p id="dashVerdictExp" style="font-size: 0.85rem; color: var(--text-main); margin: 0 0 14px 0; font-weight: 500;">
+                        Your current liquid reserve (₹2,45,000) comfortably covers this ₹1,40,000 purchase while maintaining a 3.2-month safety cushion.
+                    </p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; border-top: 1px solid var(--border-subtle); pt-12;">
+                    <div>
+                        <div style="font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Post Liquid</div>
+                        <div id="dashPostBalance" style="font-size: 0.85rem; font-weight: 800; color: var(--text-main); margin-top: 2px;">₹1,05,000</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Outflow Impact</div>
+                        <div id="dashCashflowImpact" style="font-size: 0.85rem; font-weight: 800; color: var(--accent-rose); margin-top: 2px;">-₹1,40,000</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Suggested Wait</div>
+                        <div id="dashWaitPeriod" style="font-size: 0.85rem; font-weight: 800; color: var(--accent-blue); margin-top: 2px;">0 Days</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Goal Simulation & Target Tracking Widget -->
+    <div class="saas-card" id="goalSimSection" style="padding: 24px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-bullseye" style="color: var(--accent-blue);"></i> Goal Simulation & Target Tracking
+            </h3>
+            <span class="badge-sm badge-blue">4 Active Goal Simulations</span>
+        </div>
+
+        <!-- Goal Tabs -->
+        <div style="display: flex; gap: 8px; overflow-x: auto; margin-bottom: 16px; padding-bottom: 4px;">
+            <button onclick="switchGoalTab('laptop')" id="tab-laptop" class="goal-tab-btn active"><i class="fa-solid fa-laptop"></i> MacBook Pro M3</button>
+            <button onclick="switchGoalTab('bike')" id="tab-bike" class="goal-tab-btn"><i class="fa-solid fa-motorcycle"></i> Royal Enfield Hunter</button>
+            <button onclick="switchGoalTab('vacation')" id="tab-vacation" class="goal-tab-btn"><i class="fa-solid fa-plane"></i> Japan Autumn Tour</button>
+            <button onclick="switchGoalTab('emergency')" id="tab-emergency" class="goal-tab-btn"><i class="fa-solid fa-shield-halved"></i> 6-Mo Emergency Fund</button>
+        </div>
+
+        <!-- Active Goal Content Card -->
+        <div style="background: var(--bg-primary); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                <div>
+                    <h4 id="goalTitle" style="font-size: 1.1rem; font-weight: 800; margin: 0; color: var(--text-main);">MacBook Pro M3</h4>
+                    <div id="goalProgressText" style="font-size: 0.82rem; color: var(--text-sub); margin-top: 2px;">Saved ₹1,20,000 of ₹1,80,000 (66% achieved)</div>
+                </div>
+                <span id="goalProbBadge" class="badge-sm badge-emerald">94% Success Probability</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div style="width: 100%; height: 10px; background: var(--border-subtle); border-radius: 6px; overflow: hidden; margin-bottom: 16px;">
+                <div id="goalProgressBar" style="width: 66%; height: 100%; background: var(--accent-blue); transition: width 0.4s ease;"></div>
+            </div>
+
+            <!-- Metrics Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 14px;">
+                <div style="padding: 12px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-subtle);">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Req. Monthly Savings</div>
+                    <div id="goalReqMonthly" style="font-size: 1rem; font-weight: 800; color: var(--accent-blue); margin-top: 2px;">₹15,000 / mo</div>
+                </div>
+                <div style="padding: 12px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-subtle);">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Est. Completion</div>
+                    <div id="goalEstCompletion" style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-top: 2px;">Nov 2026</div>
+                </div>
+                <div style="padding: 12px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-subtle);">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Remaining Gap</div>
+                    <div id="goalGap" style="font-size: 1rem; font-weight: 800; color: var(--accent-rose); margin-top: 2px;">₹60,000</div>
+                </div>
+            </div>
+
+            <div id="goalSuggestion" style="font-size: 0.82rem; color: var(--text-sub); background: rgba(37, 99, 235, 0.08); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(37, 99, 235, 0.15);">
+                💡 <strong>AI Suggestion:</strong> Saving ₹15,000/mo achieves this goal in 4 months without touching emergency reserves.
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. 360-Day Future Cash Flow Forecast & Decision History Log -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; margin-bottom: 28px;" id="forecastSection">
+        <!-- 360-Day Cumulative Cashflow Forecast -->
+        <div class="saas-card" style="padding: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-chart-line" style="color: var(--accent-emerald);"></i> 360-Day Cash Flow Forecast
+                </h4>
+                <span class="badge-sm badge-emerald">98% Confidence</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.85rem;">
+                <div style="padding: 12px; background: var(--bg-primary); border-radius: 12px; border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-sub); font-weight: 600;">Next 30 Days Forecast:</span>
+                    <strong style="color: var(--accent-emerald); font-size: 0.95rem;">+₹53,200 Surplus</strong>
+                </div>
+                <div style="padding: 12px; background: var(--bg-primary); border-radius: 12px; border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-sub); font-weight: 600;">Next 90 Days Cumulative:</span>
+                    <strong style="color: var(--accent-emerald); font-size: 0.95rem;">+₹1,62,000 Surplus</strong>
+                </div>
+                <div style="padding: 12px; background: var(--bg-primary); border-radius: 12px; border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-sub); font-weight: 600;">Next 365 Days Projection:</span>
+                    <strong style="color: var(--accent-purple); font-size: 0.95rem;">+₹6,60,000 Surplus</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Decision History Log Table -->
+        <div class="saas-card" style="padding: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-purple);"></i> Decision History Log
+                </h4>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Last 3 Simulations</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.85rem;">
+                <div style="padding: 10px 14px; background: var(--bg-primary); border-radius: 12px; border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 800; color: var(--text-main);">iPhone 16 Pro (₹1,40,000)</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Aug 03, 2026 • Lump Sum</div>
+                    </div>
+                    <span class="badge-sm badge-emerald">YES (85/100)</span>
+                </div>
+
+                <div style="padding: 10px 14px; background: var(--bg-primary); border-radius: 12px; border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 800; color: var(--text-main);">BMW G310 GS (₹3,50,000)</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Jul 28, 2026 • EMI</div>
+                    </div>
+                    <span class="badge-sm badge-rose">NO (15/100)</span>
+                </div>
+
+                <div style="padding: 10px 14px; background: var(--bg-primary); border-radius: 12px; border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 800; color: var(--text-main);">Sony OLED TV (₹85,000)</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Jul 14, 2026 • Lump Sum</div>
+                    </div>
+                    <span class="badge-sm badge-amber">WAIT (62/100)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const GOAL_DATA = {
+        laptop: { title: 'MacBook Pro M3', text: 'Saved ₹1,20,000 of ₹1,80,000 (66% achieved)', width: '66%', req: '₹15,000 / mo', comp: 'Nov 2026', gap: '₹60,000', prob: '94% Success Probability', sug: '💡 <strong>AI Suggestion:</strong> Saving ₹15,000/mo achieves this goal in 4 months without touching emergency reserves.' },
+        bike: { title: 'Royal Enfield Hunter 350', text: 'Saved ₹85,000 of ₹2,20,000 (38% achieved)', width: '38%', req: '₹12,000 / mo', comp: 'Mar 2027', gap: '₹1,35,000', prob: '88% Success Probability', sug: '💡 <strong>AI Suggestion:</strong> Reallocating ₹3,000 from monthly dining out reduces completion time by 2 months.' },
+        vacation: { title: 'Japan Autumn Tour', text: 'Saved ₹1,50,000 of ₹3,00,000 (50% achieved)', width: '50%', req: '₹25,000 / mo', comp: 'Oct 2026', gap: '₹1,50,000', prob: '91% Success Probability', sug: '💡 <strong>AI Suggestion:</strong> Automated weekly transfer of ₹6,250 keeps your travel fund right on track.' },
+        emergency: { title: '6-Month Emergency Cushion', text: 'Saved ₹2,45,000 of ₹3,00,000 (82% achieved)', width: '82%', req: '₹18,000 / mo', comp: 'Sep 2026', gap: '₹55,000', prob: '98% Success Probability', sug: '💡 <strong>AI Suggestion:</strong> Your safety cushion is 82% complete. 3 more cycles reach full 6-month coverage.' }
+    };
+
+    function switchGoalTab(key) {
+        ['laptop', 'bike', 'vacation', 'emergency'].forEach(k => {
+            const btn = document.getElementById('tab-' + k);
+            if (btn) btn.classList.remove('active');
+        });
+        document.getElementById('tab-' + key).classList.add('active');
+
+        const d = GOAL_DATA[key];
+        document.getElementById('goalTitle').innerText = d.title;
+        document.getElementById('goalProgressText').innerText = d.text;
+        document.getElementById('goalProgressBar').style.width = d.width;
+        document.getElementById('goalReqMonthly').innerText = d.req;
+        document.getElementById('goalEstCompletion').innerText = d.comp;
+        document.getElementById('goalGap').innerText = d.gap;
+        document.getElementById('goalProbBadge').innerText = d.prob;
+        document.getElementById('goalSuggestion').innerHTML = d.sug;
+    }
+
+    async function runDashboardAffordSim(e) {
+        e.preventDefault();
+        const name = document.getElementById('dashAffordName').value;
+        const amount = parseFloat(document.getElementById('dashAffordAmount').value);
+        const type = document.getElementById('dashAffordType').value;
+
+        const badge = document.getElementById('dashVerdictBadge');
+        const score = document.getElementById('dashVerdictScore');
+        const exp = document.getElementById('dashVerdictExp');
+        const postBal = document.getElementById('dashPostBalance');
+        const impact = document.getElementById('dashCashflowImpact');
+        const wait = document.getElementById('dashWaitPeriod');
+
+        try {
+            const resp = await fetch('/api/v1/decision/can-i-afford/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ purchase_name: name, amount: amount, payment_type: type })
+            });
+            const json = await resp.json();
+            if (json.success) {
+                const d = json.data;
+                badge.className = 'badge-sm ' + (d.decision === 'YES' ? 'badge-emerald' : (d.decision === 'WAIT' ? 'badge-amber' : 'badge-rose'));
+                badge.innerText = 'Verdict: ' + d.decision;
+                score.innerText = 'Score: ' + d.affordability_score + '/100';
+                exp.innerText = d.ai_explanation;
+                postBal.innerText = '₹' + d.impact_analysis.post_liquid_assets.toLocaleString();
+                impact.innerText = '-₹' + amount.toLocaleString();
+                wait.innerText = d.decision === 'YES' ? '0 Days' : (d.decision === 'WAIT' ? '45 Days' : '6 Months');
+            }
+        } catch (err) {
+            exp.innerText = 'Evaluated offline simulation mode.';
+        }
+    }
+</script>
+{% endblock %}

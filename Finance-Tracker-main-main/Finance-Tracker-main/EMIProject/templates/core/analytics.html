@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analytics Dashboard | FinTrack AI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/enterprise_dashboard.css' %}">
+<style>
+    .heatmap-grid-scroll {
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        scrollbar-width: thin;
+    }
+    .heatmap-col {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .heatmap-cell {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        background: var(--border-subtle);
+        transition: transform 0.15s ease;
+    }
+    .heatmap-cell:hover {
+        transform: scale(1.3);
+        z-index: 10;
+    }
+    .heatmap-cell.l1 { background: rgba(5, 150, 105, 0.25); }
+    .heatmap-cell.l2 { background: rgba(5, 150, 105, 0.5); }
+    .heatmap-cell.l3 { background: rgba(5, 150, 105, 0.75); }
+    .heatmap-cell.l4 { background: #059669; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="saas-full-wrapper">
+
+    <!-- 1. Executive Header & Time Controls Banner -->
+    <div class="saas-hero" style="padding: 20px 28px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="padding: 10px 14px; border-radius: 14px; background: rgba(37, 99, 235, 0.12); color: var(--accent-blue);">
+                <i class="fa-solid fa-chart-column" style="font-size: 1.4rem;"></i>
+            </div>
+            <div>
+                <h1 style="font-size: 1.6rem; font-weight: 800; margin: 0; color: var(--text-main); letter-spacing: -0.4px;">
+                    Phase 4 – Financial Analytics Intelligence
+                </h1>
+                <div style="font-size: 0.85rem; color: var(--text-sub); margin-top: 2px;">
+                    Structured cashflow trends, wealth appreciation, and spending distribution matrix.
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <!-- Time Filter Toggles -->
+            <div style="display: flex; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 4px; font-size: 0.8rem; font-weight: 700; box-shadow: var(--shadow-card);">
+                <button onclick="setFilter('daily')" id="btnDaily" class="header-action-btn" style="border: none; padding: 5px 12px; font-size: 0.78rem;">Daily</button>
+                <button onclick="setFilter('weekly')" id="btnWeekly" class="header-action-btn" style="border: none; padding: 5px 12px; font-size: 0.78rem;">Weekly</button>
+                <button onclick="setFilter('monthly')" id="btnMonthly" class="header-action-btn btn-primary-blue" style="border: none; padding: 5px 12px; font-size: 0.78rem;">Monthly</button>
+                <button onclick="setFilter('yearly')" id="btnYearly" class="header-action-btn" style="border: none; padding: 5px 12px; font-size: 0.78rem;">Yearly</button>
+            </div>
+
+            <button onclick="location.reload()" class="header-action-btn" title="Refresh Analytics">
+                <i class="fa-solid fa-rotate"></i> Refresh
+            </button>
+            <button onclick="window.print()" class="header-action-btn btn-primary-blue">
+                <i class="fa-solid fa-download"></i> Export PDF/PNG
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. KPI Summary Bar (6 Equal Metrics Cards Grid) -->
+    <div class="saas-kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 28px;">
+        <div class="saas-kpi-card">
+            <span class="kpi-label">Highest Expense</span>
+            <div class="kpi-value" style="color: var(--accent-rose);">Food & Dining</div>
+            <div class="kpi-sub">₹12,400 (34%)</div>
+        </div>
+        <div class="saas-kpi-card">
+            <span class="kpi-label">Highest Income</span>
+            <div class="kpi-value" style="color: var(--accent-emerald);">Salary Tech</div>
+            <div class="kpi-sub">₹80,000 / mo</div>
+        </div>
+        <div class="saas-kpi-card">
+            <span class="kpi-label">Avg Outflow</span>
+            <div class="kpi-value" style="color: var(--accent-blue);">₹28,500</div>
+            <div class="kpi-sub">Stable 6-mo avg</div>
+        </div>
+        <div class="saas-kpi-card">
+            <span class="kpi-label">Savings Rate</span>
+            <div class="kpi-value" style="color: var(--accent-emerald);">64.3%</div>
+            <div class="kpi-sub">+4.2% MoM growth</div>
+        </div>
+        <div class="saas-kpi-card">
+            <span class="kpi-label">Investment Growth</span>
+            <div class="kpi-value" style="color: var(--accent-purple);">+14.8%</div>
+            <div class="kpi-sub">₹77,312 Portfolio</div>
+        </div>
+        <div class="saas-kpi-card">
+            <span class="kpi-label">Budget Efficiency</span>
+            <div class="kpi-value" style="color: var(--accent-amber);">92 / 100</div>
+            <div class="kpi-sub">Optimal DTI Cushion</div>
+        </div>
+    </div>
+
+    <!-- 3. Heatmap & Smart Insights Split Row (2/3 + 1/3) -->
+    <div class="analytics-split-row">
+        <!-- 365-Day Daily Spending Intensity Heatmap (2/3 Width) -->
+        <div class="saas-card" style="padding: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-calendar-days" style="color: var(--accent-emerald);"></i> 365-Day Daily Spending Intensity Heatmap
+                </h4>
+                <div style="display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">
+                    <span>Less</span>
+                    <div class="heatmap-cell" style="width: 10px; height: 10px;"></div>
+                    <div class="heatmap-cell l1" style="width: 10px; height: 10px;"></div>
+                    <div class="heatmap-cell l2" style="width: 10px; height: 10px;"></div>
+                    <div class="heatmap-cell l3" style="width: 10px; height: 10px;"></div>
+                    <div class="heatmap-cell l4" style="width: 10px; height: 10px;"></div>
+                    <span>More</span>
+                </div>
+            </div>
+
+            <div class="heatmap-grid-scroll" id="heatmapGrid">
+                <!-- Populated via JavaScript -->
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; display: flex; justify-content: space-between; font-weight: 600;">
+                <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+            </div>
+        </div>
+
+        <!-- Smart AI Insights Feed (1/3 Width) -->
+        <div class="saas-card" style="padding: 22px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <h4 style="margin: 0 0 14px 0; font-size: 1rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-sparkles" style="color: var(--accent-purple);"></i> Smart AI Advisory Feed
+                </h4>
+
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="padding: 10px 12px; border-radius: 12px; background: rgba(217, 119, 6, 0.08); border: 1px solid rgba(217, 119, 6, 0.2); display: flex; gap: 10px; align-items: flex-start;">
+                        <i class="fa-solid fa-triangle-exclamation" style="color: var(--accent-amber); font-size: 0.95rem; margin-top: 2px;"></i>
+                        <div>
+                            <div style="font-weight: 800; font-size: 0.82rem; color: var(--text-main);">Spending Spike +12%</div>
+                            <div style="font-size: 0.75rem; color: var(--text-sub);">Food expenses are 18% above 60-day average.</div>
+                        </div>
+                    </div>
+
+                    <div style="padding: 10px 12px; border-radius: 12px; background: rgba(5, 150, 105, 0.08); border: 1px solid rgba(5, 150, 105, 0.2); display: flex; gap: 10px; align-items: flex-start;">
+                        <i class="fa-solid fa-circle-check" style="color: var(--accent-emerald); font-size: 0.95rem; margin-top: 2px;"></i>
+                        <div>
+                            <div style="font-weight: 800; font-size: 0.82rem; color: var(--text-main);">Savings Rate +9%</div>
+                            <div style="font-size: 0.75rem; color: var(--text-sub);">Liquid reserve increased by ₹14,000.</div>
+                        </div>
+                    </div>
+
+                    <div style="padding: 10px 12px; border-radius: 12px; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.2); display: flex; gap: 10px; align-items: flex-start;">
+                        <i class="fa-solid fa-shield-check" style="color: var(--accent-blue); font-size: 0.95rem; margin-top: 2px;"></i>
+                        <div>
+                            <div style="font-weight: 800; font-size: 0.82rem; color: var(--text-main);">Budget Utilization Healthy</div>
+                            <div style="font-size: 0.75rem; color: var(--text-sub);">DTI & debt ratios remain under 35%.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Structured 2-Column Chart Grid Row 1 -->
+    <div class="analytics-chart-grid">
+        <!-- Chart 1: Income vs Expense Area -->
+        <div class="saas-card chart-card-bounded">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-main);">Income vs Outflow & Net Savings</h4>
+                <span class="badge-sm badge-blue">Line + Area</span>
+            </div>
+            <div class="chart-container-box">
+                <canvas id="incomeExpenseAreaChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 2: Category Donut Chart -->
+        <div class="saas-card chart-card-bounded">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-main);">Expense Category Breakdown</h4>
+                <span class="badge-sm badge-purple">Top: Food (34%)</span>
+            </div>
+            <div class="chart-container-box">
+                <canvas id="categoryDonutChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Structured 2-Column Chart Grid Row 2 -->
+    <div class="analytics-chart-grid">
+        <!-- Chart 3: Monthly Cash Flow Bar Chart -->
+        <div class="saas-card chart-card-bounded">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-main);">Monthly Cash Flow Surplus</h4>
+                <span class="badge-sm badge-emerald">Peak Surplus ₹55,000</span>
+            </div>
+            <div class="chart-container-box">
+                <canvas id="cashflowBarChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 4: Savings Growth Area Chart -->
+        <div class="saas-card chart-card-bounded">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-main);">Savings Reserve Trajectory</h4>
+                <span class="badge-sm badge-emerald">4.2 Mo Cushion</span>
+            </div>
+            <div class="chart-container-box">
+                <canvas id="savingsGrowthChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Structured 2-Column Chart Grid Row 3 -->
+    <div class="analytics-chart-grid">
+        <!-- Chart 5: Investment Multi-Line Chart -->
+        <div class="saas-card chart-card-bounded">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-main);">Investment Growth (Stocks & MF)</h4>
+                <span class="badge-sm badge-purple">ROI +14.8%</span>
+            </div>
+            <div class="chart-container-box">
+                <canvas id="investmentMultiLineChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 6: Financial Allocation Pie Chart -->
+        <div class="saas-card chart-card-bounded">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-main);">Financial Income Allocation</h4>
+                <span class="badge-sm badge-blue">Allocation Pie</span>
+            </div>
+            <div class="chart-container-box">
+                <canvas id="financialDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Populate 365-Day Heatmap Grid
+        const grid = document.getElementById('heatmapGrid');
+        if (grid) {
+            for (let w = 0; w < 52; w++) {
+                const col = document.createElement('div');
+                col.className = 'heatmap-col';
+                for (let d = 0; d < 7; d++) {
+                    const cell = document.createElement('div');
+                    const level = Math.floor(Math.random() * 5);
+                    cell.className = 'heatmap-cell' + (level > 0 ? ' l' + level : '');
+                    cell.title = `Week ${w + 1}, Day ${d + 1}: Intensity Level ${level}`;
+                    col.appendChild(cell);
+                }
+                grid.appendChild(col);
+            }
+        }
+
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#475569';
+
+        // 1. Income vs Expense Area Chart
+        new Chart(document.getElementById('incomeExpenseAreaChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Current'],
+                datasets: [
+                    { label: 'Income', data: [75000, 75000, 80000, 80000, 80000, 80000], borderColor: '#059669', backgroundColor: 'rgba(5, 150, 105, 0.12)', fill: true, tension: 0.3 },
+                    { label: 'Outflow', data: [32000, 29000, 34000, 31000, 28000, 25000], borderColor: '#dc2626', backgroundColor: 'rgba(220, 38, 38, 0.12)', fill: true, tension: 0.3 },
+                    { label: 'Net Savings', data: [43000, 46000, 46000, 49000, 52000, 55000], borderColor: '#2563eb', borderWidth: 3, tension: 0.3, fill: false }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 2. Expense Category Donut Chart
+        new Chart(document.getElementById('categoryDonutChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Food & Dining (34%)', 'Bills (25%)', 'EMI Loan (16%)', 'Transport (15%)', 'Other (10%)'],
+                datasets: [{
+                    data: [34, 25, 16, 15, 10],
+                    backgroundColor: ['#2563eb', '#7c3aed', '#d97706', '#059669', '#dc2626']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+        });
+
+        // 3. Monthly Cash Flow Bar Chart
+        new Chart(document.getElementById('cashflowBarChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Current'],
+                datasets: [{
+                    label: 'Net Surplus (₹)',
+                    data: [43000, 46000, 46000, 49000, 52000, 55000],
+                    backgroundColor: '#059669',
+                    borderRadius: 6
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 4. Savings Growth Area Chart
+        new Chart(document.getElementById('savingsGrowthChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Current'],
+                datasets: [{
+                    label: 'Reserve (₹)',
+                    data: [120000, 140000, 165000, 190000, 210000, 245000],
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 5. Investment Multi-Line Chart
+        new Chart(document.getElementById('investmentMultiLineChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Current'],
+                datasets: [
+                    { label: 'Stocks Value', data: [32000, 34000, 36500, 38000, 40000, 42000], borderColor: '#7c3aed', tension: 0.3 },
+                    { label: 'Mutual Funds Value', data: [28000, 29500, 31000, 33000, 34500, 35312], borderColor: '#059669', tension: 0.3 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 6. Financial Distribution Pie Chart
+        new Chart(document.getElementById('financialDistributionChart').getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: ['Savings (45%)', 'Outflow (30%)', 'Investments (15%)', 'EMI (10%)'],
+                datasets: [{
+                    data: [45, 30, 15, 10],
+                    backgroundColor: ['#059669', '#dc2626', '#7c3aed', '#d97706']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+        });
+    });
+
+    function setFilter(range) {
+        ['btnDaily', 'btnWeekly', 'btnMonthly', 'btnYearly'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) {
+                btn.className = 'header-action-btn';
+            }
+        });
+        const activeBtn = document.getElementById('btn' + range.charAt(0).toUpperCase() + range.slice(1));
+        if (activeBtn) {
+            activeBtn.className = 'header-action-btn btn-primary-blue';
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,482 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Wallet & Budget Tracker | FinTrack{% endblock %}
+
+{% block extra_css %}
+<style>
+    .wallet-hero {
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(124, 58, 237, 0.08));
+        border: 1px solid var(--border-light);
+        border-radius: 24px;
+        padding: 28px;
+        margin-bottom: 32px;
+        backdrop-filter: blur(12px);
+    }
+    
+    .wallet-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 20px;
+        padding: 24px;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .wallet-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px -10px rgba(0,0,0,0.15);
+        border-color: var(--accent-blue);
+    }
+    .wallet-card-stripe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+    }
+    .wallet-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        margin-bottom: 16px;
+    }
+
+    .budget-progress-bar {
+        height: 10px;
+        border-radius: 6px;
+        background: var(--border-light);
+        overflow: hidden;
+        margin-top: 12px;
+        margin-bottom: 8px;
+    }
+    .budget-progress-fill {
+        height: 100%;
+        border-radius: 6px;
+        transition: width 0.6s ease;
+    }
+
+    .status-safe { background-color: #10b981; color: #10b981; }
+    .status-warning { background-color: #f59e0b; color: #f59e0b; }
+    .status-danger { background-color: #ef4444; color: #ef4444; }
+
+    .badge-safe { background: rgba(16, 185, 129, 0.15); color: #059669; }
+    .badge-warning { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+    .badge-danger { background: rgba(239, 68, 68, 0.15); color: #dc2626; }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s;
+    }
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    .modal-content-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 24px;
+        padding: 32px;
+        width: 100%;
+        max-width: 520px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+    
+    .quick-action-btn {
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 24px 16px;">
+    
+    <!-- Hero / Header Metrics -->
+    <div class="wallet-hero">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                    <span style="font-size: 0.9rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px;">Net Liquid Balance</span>
+                    <span class="badge" style="background: rgba(37, 99, 235, 0.15); color: var(--accent-blue); padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.8rem;">
+                        {{ wallets|length }} Active Accounts
+                    </span>
+                </div>
+                <h1 style="font-size: 2.6rem; font-weight: 800; margin: 0; color: var(--text-main);">
+                    ₹{{ total_balance|floatformat:2 }}
+                </h1>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                <button onclick="openModal('addWalletModal')" class="quick-action-btn" style="background: var(--accent-blue); color: white;">
+                    <i class="fa-solid fa-plus"></i> Add Wallet
+                </button>
+                <button onclick="openModal('addIncomeModal')" class="quick-action-btn" style="background: #10b981; color: white;">
+                    <i class="fa-solid fa-arrow-down-left"></i> Log Income
+                </button>
+                <button onclick="openModal('setBudgetModal')" class="quick-action-btn" style="background: #8b5cf6; color: white;">
+                    <i class="fa-solid fa-bullseye"></i> Set Budget
+                </button>
+                <button onclick="openModal('transferModal')" class="quick-action-btn" style="background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-light);">
+                    <i class="fa-solid fa-right-left"></i> Transfer
+                </button>
+            </div>
+        </div>
+
+        <!-- Monthly Summary Strip -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 28px; padding-top: 20px; border-top: 1px dashed var(--border-light);">
+            <div>
+                <span style="font-size: 0.85rem; color: var(--text-muted);">Monthly Income</span>
+                <div style="font-size: 1.3rem; font-weight: 700; color: #10b981;">+₹{{ total_monthly_income|floatformat:2 }}</div>
+            </div>
+            <div>
+                <span style="font-size: 0.85rem; color: var(--text-muted);">Monthly Outflow</span>
+                <div style="font-size: 1.3rem; font-weight: 700; color: #ef4444;">-₹{{ total_monthly_expense|floatformat:2 }}</div>
+            </div>
+            <div>
+                <span style="font-size: 0.85rem; color: var(--text-muted);">Net Monthly Cashflow</span>
+                <div style="font-size: 1.3rem; font-weight: 700; color: {% if net_cashflow >= 0 %}#10b981{% else %}#ef4444{% endif %};">
+                    {% if net_cashflow >= 0 %}+{% endif %}₹{{ net_cashflow|floatformat:2 }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 1: Wallets & Bank Accounts Grid -->
+    <div style="margin-bottom: 40px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="font-size: 1.4rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-wallet" style="color: var(--accent-blue);"></i> My Accounts & Wallets
+            </h2>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;">
+            {% for w in wallets %}
+            <div class="wallet-card">
+                <div class="wallet-card-stripe" style="background: {{ w.color }};"></div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="wallet-icon" style="background: {{ w.color }}20; color: {{ w.color }};">
+                        <i class="fa-solid {{ w.icon }}"></i>
+                    </div>
+                    {% if w.is_default %}
+                        <span class="badge" style="background: var(--accent-blue-subtle); color: var(--accent-blue); font-size: 0.75rem; padding: 4px 8px; border-radius: 12px; font-weight: 600;">Default</span>
+                    {% endif %}
+                </div>
+
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 4px 0; color: var(--text-main);">{{ w.name }}</h3>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+                    {{ w.get_wallet_type_display }} {% if w.account_number_last4 %}•••• {{ w.account_number_last4 }}{% endif %}
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Current Balance</span>
+                        <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">₹{{ w.balance|floatformat:2 }}</div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{% url 'wallet_edit' w.id %}" style="color: var(--text-muted); font-size: 0.9rem;" title="Edit Wallet"><i class="fa-solid fa-pen-to-square"></i></a>
+                        <a href="{% url 'wallet_delete' w.id %}" style="color: #ef4444; font-size: 0.9rem;" title="Delete Wallet"><i class="fa-solid fa-trash"></i></a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: var(--bg-card); border-radius: 20px; border: 1px dashed var(--border-light);">
+                <p style="color: var(--text-muted); margin: 0;">No accounts or wallets found. Click "Add Wallet" to set up your first bank account or wallet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Section 2: Category Monthly Budget Tracker -->
+    <div style="margin-bottom: 40px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h2 style="font-size: 1.4rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-bullseye" style="color: #8b5cf6;"></i> Category Budget Tracker
+                </h2>
+                <span style="font-size: 0.85rem; color: var(--text-muted);">Real-time monthly spending vs target limits</span>
+            </div>
+            <button onclick="openModal('setBudgetModal')" class="quick-action-btn" style="background: var(--bg-card); border: 1px solid var(--border-light); color: var(--text-main);">
+                <i class="fa-solid fa-sliders"></i> Manage Budgets
+            </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+            {% for b in budgets %}
+            <div class="wallet-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-weight: 700; font-size: 1.05rem; color: var(--text-main);">{{ b.category_name }}</span>
+                    <span class="badge badge-{{ b.status }}" style="padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 0.75rem;">
+                        {% if b.status == 'safe' %}Safe{% elif b.status == 'warning' %}Near Limit{% else %}Over Budget!{% endif %}
+                    </span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 0.9rem;">
+                    <span style="color: var(--text-muted);">Spent: <strong style="color: var(--text-main);">₹{{ b.spent|floatformat:2 }}</strong></span>
+                    <span style="color: var(--text-muted);">Limit: <strong>₹{{ b.limit|floatformat:2 }}</strong></span>
+                </div>
+
+                <div class="budget-progress-bar">
+                    <div class="budget-progress-fill status-{{ b.status }}" style="width: {{ b.percent }}%;"></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
+                    <span>{{ b.raw_percent }}% Used</span>
+                    <span>
+                        {% if b.remaining >= 0 %}
+                            ₹{{ b.remaining|floatformat:2 }} left
+                        {% else %}
+                            Over by ₹{{ b.remaining|floatformat:2|slice:"1:" }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: var(--bg-card); border-radius: 20px; border: 1px dashed var(--border-light);">
+                <p style="color: var(--text-muted); margin-bottom: 12px;">No monthly budgets set yet.</p>
+                <button onclick="openModal('setBudgetModal')" class="quick-action-btn" style="background: #8b5cf6; color: white;">
+                    <i class="fa-solid fa-plus"></i> Set Category Budget
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Section 3: Recent Activity (Incomes & Transfers) -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
+        <!-- Recent Income Stream -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 20px; padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-main);">
+                    <i class="fa-solid fa-arrow-down-left" style="color: #10b981;"></i> Recent Income Logs
+                </h3>
+            </div>
+            {% for inc in recent_incomes %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-light);">
+                <div>
+                    <div style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">{{ inc.title }}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">{{ inc.get_source_display }} • {{ inc.wallet.name|default:"Unspecified" }}</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 700; color: #10b981;">+₹{{ inc.amount|floatformat:2 }}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">{{ inc.date }}</div>
+                </div>
+            </div>
+            {% empty %}
+            <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; margin: 20px 0;">No income logged recently.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Recent Internal Transfers -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 20px; padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-main);">
+                    <i class="fa-solid fa-right-left" style="color: var(--accent-blue);"></i> Wallet Transfers
+                </h3>
+            </div>
+            {% for tr in recent_transfers %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-light);">
+                <div>
+                    <div style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">{{ tr.from_wallet.name }} ➔ {{ tr.to_wallet.name }}</div>
+                    {% if tr.note %}<div style="font-size: 0.8rem; color: var(--text-muted);">{{ tr.note }}</div>{% endif %}
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 700; color: var(--text-main);">₹{{ tr.amount|floatformat:2 }}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">{{ tr.date }}</div>
+                </div>
+            </div>
+            {% empty %}
+            <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; margin: 20px 0;">No internal transfers logged.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal 1: Add Wallet -->
+<div class="modal-overlay" id="addWalletModal">
+    <div class="modal-content-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3 style="margin: 0; font-size: 1.3rem; font-weight: 700;">Add New Wallet / Account</h3>
+            <button onclick="closeModal('addWalletModal')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form method="POST" action="{% url 'wallet_add' %}">
+            {% csrf_token %}
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">Wallet / Account Name</label>
+                {{ wallet_form.name }}
+            </div>
+            <div style="grid-template-columns: 1fr 1fr; display: grid; gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">Account Type</label>
+                    {{ wallet_form.wallet_type }}
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">Initial Balance (₹)</label>
+                    {{ wallet_form.balance }}
+                </div>
+            </div>
+            <div style="grid-template-columns: 1fr 1fr; display: grid; gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">Last 4 Digits</label>
+                    {{ wallet_form.account_number_last4 }}
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">Card / Theme Color</label>
+                    {{ wallet_form.color }}
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                <button type="button" onclick="closeModal('addWalletModal')" class="quick-action-btn" style="background: var(--bg-body); border: 1px solid var(--border-light); color: var(--text-main);">Cancel</button>
+                <button type="submit" class="quick-action-btn" style="background: var(--accent-blue); color: white;">Save Wallet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal 2: Set Category Budget -->
+<div class="modal-overlay" id="setBudgetModal">
+    <div class="modal-content-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3 style="margin: 0; font-size: 1.3rem; font-weight: 700;">Set Category Monthly Budget</h3>
+            <button onclick="closeModal('setBudgetModal')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form method="POST" action="{% url 'budget_add' %}">
+            {% csrf_token %}
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">Category</label>
+                {{ budget_form.category }}
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">Monthly Budget Limit (₹)</label>
+                {{ budget_form.monthly_limit }}
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                <button type="button" onclick="closeModal('setBudgetModal')" class="quick-action-btn" style="background: var(--bg-body); border: 1px solid var(--border-light); color: var(--text-main);">Cancel</button>
+                <button type="submit" class="quick-action-btn" style="background: #8b5cf6; color: white;">Set Budget</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal 3: Log Income -->
+<div class="modal-overlay" id="addIncomeModal">
+    <div class="modal-content-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3 style="margin: 0; font-size: 1.3rem; font-weight: 700;">Log Incoming Cashflow</h3>
+            <button onclick="closeModal('addIncomeModal')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form method="POST" action="{% url 'income_add' %}">
+            {% csrf_token %}
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">Title / Description</label>
+                {{ income_form.title }}
+            </div>
+            <div style="grid-template-columns: 1fr 1fr; display: grid; gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">Amount (₹)</label>
+                    {{ income_form.amount }}
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">Source</label>
+                    {{ income_form.source }}
+                </div>
+            </div>
+            <div style="grid-template-columns: 1fr 1fr; display: grid; gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">Deposit Wallet</label>
+                    {{ income_form.wallet }}
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">Date</label>
+                    {{ income_form.date }}
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                <button type="button" onclick="closeModal('addIncomeModal')" class="quick-action-btn" style="background: var(--bg-body); border: 1px solid var(--border-light); color: var(--text-main);">Cancel</button>
+                <button type="submit" class="quick-action-btn" style="background: #10b981; color: white;">Log Income</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal 4: Wallet Transfer -->
+<div class="modal-overlay" id="transferModal">
+    <div class="modal-content-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3 style="margin: 0; font-size: 1.3rem; font-weight: 700;">Internal Wallet Transfer</h3>
+            <button onclick="closeModal('transferModal')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form method="POST" action="{% url 'transfer_add' %}">
+            {% csrf_token %}
+            <div style="grid-template-columns: 1fr 1fr; display: grid; gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">From Wallet</label>
+                    {{ transfer_form.from_wallet }}
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">To Wallet</label>
+                    {{ transfer_form.to_wallet }}
+                </div>
+            </div>
+            <div style="grid-template-columns: 1fr 1fr; display: grid; gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">Amount (₹)</label>
+                    {{ transfer_form.amount }}
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">Date</label>
+                    {{ transfer_form.date }}
+                </div>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">Note (Optional)</label>
+                {{ transfer_form.note }}
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                <button type="button" onclick="closeModal('transferModal')" class="quick-action-btn" style="background: var(--bg-body); border: 1px solid var(--border-light); color: var(--text-main);">Cancel</button>
+                <button type="submit" class="quick-action-btn" style="background: var(--accent-blue); color: white;">Confirm Transfer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openModal(id) {
+        document.getElementById(id).classList.add('active');
+    }
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+    // Close modal on clicking outside content
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
+        });
+    });
+</script>
+{% endblock %}
