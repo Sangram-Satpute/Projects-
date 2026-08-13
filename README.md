@@ -6,6 +6,8 @@ FinShield is a web-based personal finance management platform designed to help u
 The system allows users to record income and expenses, manage financial transactions, monitor their balance, analyze spending patterns, and visualize financial data using charts and reports.
 
 The project demonstrates practical implementation of full-stack web development, database management, user authentication, CRUD operations, data visualization, REST API concepts, Git/GitHub, and software engineering practices.
+<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/cf0ed68b-29a7-4a9a-b36b-d65657669400" />
+
 
 🎯 Objectives
 To develop a digital platform for managing personal finances.
@@ -219,6 +221,8 @@ FinShield_Project/
 ├── media/
 
 └── db.sqlite3
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/77f41417-f1a7-4317-b95f-84f13b6207e3" />
+
 
 Note: The structure should be updated according to the actual project files.
 
