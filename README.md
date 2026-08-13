@@ -790,3 +790,4 @@ What did you learn?
 I gained practical experience in Django, database management, CRUD operations, authentication, data visualization, Git/GitHub, debugging, and building a complete web application.
 
 <img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/57d0c531-f865-409f-bd5e-89b0746d9693" />
+<img width="920" height="461" alt="image" src="https://github.com/user-attachments/assets/127a5e85-0733-458c-84bb-5f879f0b17e1" />download videos from this place
